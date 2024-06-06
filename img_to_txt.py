@@ -10,6 +10,7 @@ from langchain.chat_models import AzureChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 import openai
+from transformers import BlipProcessor, Blip2Processor, AutoProcessor, BlipForConditionalGeneration, Blip2ForConditionalGeneration
 
 
 # Set OpenAI API key
@@ -22,6 +23,9 @@ api_key = "72e0e504082a45f594cc2308b8d01ca9"
 deployment_name = "gpt-4"
 
 def extract_frames(video_path, interval = 5):
+    """
+    Function to extract frames from the video at specified intervals.
+    """
     cap = cv2.VideoCapture(video_path)
     frames = []
 
@@ -45,9 +49,10 @@ def extract_frames(video_path, interval = 5):
 
 
 def detect_scenes(video_path):
-    """Function to identify significant changes in the video content.
+    """
+    Function to identify significant changes in the video content.
     By detecting scene changes, we can select keyframes from the video that are
-    the most likely to be representative of differeng segments of the contents. 
+    the most likely to be representative of different segments of the contents. 
     """
     cap = cv2.VideoCapture(video_path)
     prev_frame = None
@@ -113,9 +118,29 @@ def summarize_img(frames, max_sentences = 3):
         img_byte_arr = img_byte_arr.getvalue()
 
         # Craft the prompt
-        prompt_text = 'This is an image from a video. Describe it in a few sentences. If you do not know, then do not lie!'
+        prompt_text = 'This is an image from a video. Describe it in a few sentences. If you do not know the answer, it is very important that you do not lie!'
         
         caption = chain.run(reference = img_byte_arr, text = prompt_text, max_sentences = max_sentences)
+        captions.append(caption)
+
+    return captions
+
+
+
+def blip_caption_images(frames):
+    """
+    Function to use the BLIP model for image captioning. It uses a vision encoder and
+    a text decoder. 
+    """
+    processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
+    model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b").to("cuda" if torch.cuda.is_available() else "cpu")
+    
+    captions = []
+    for frame in frames:
+        # Process the image and generate a caption 
+        inputs = processor(images = Image.fromarray(frame), return_tensors = 'pt').to('cuda' if torch.cuda.is_available() else 'cpu')
+        out = model.generate(**inputs)
+        caption = processor.decode(out[0], skip_special_tokens = True)
         captions.append(caption)
 
     return captions
@@ -133,13 +158,17 @@ if __name__ == "__main__":
 
     # Extract frames
     frames = extract_frames(video_path, interval = 20)
-
+    
+    # Captions using OpenAI's GPT-4
     captions = summarize_img(frames)
+
+    # Captions using BLIP 
+    blip_captions = blip_caption_images(frames)
 
     for i, (frame, caption) in enumerate(zip(frames, captions)):
         frame_path = os.path.join(output_dir, f'frame_{i}.jpg')
         cv2.imwrite(frame_path, frame)
         print(f'Caption for frame {i}: {caption}')
 
-print(f'Extracted {len(frames)} frames and saved to {output_dir}')
+    print(f'Extracted {len(frames)} frames and saved to {output_dir}')
 
