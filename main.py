@@ -2,7 +2,6 @@ from S_to_T import *
 from captions import *
 from overall import *
 
-
 def main(video_url, model_choice, progress_callback=None):
    
     # Function for updating the progress bar 
@@ -47,10 +46,12 @@ def main(video_url, model_choice, progress_callback=None):
         summary_captions = summarize_image_captions(captions, max_sentences=3)
         print("Image Captions Summary:\n", summary_captions)
         update_progress(90, "Summarizing...")
+
         # Generate overall summary
-        overall_summary = summarize_overall(summary_text, summary_captions, max_sentences=5)
+        overall_summary = summarize_overall(summary_text, summary_captions, personality = 'professor', max_sentences = 5)
         print("Overall Summary:\n", overall_summary)
         return overall_summary
+
     else:
         print("Failed to download video or extract audio.")
 
