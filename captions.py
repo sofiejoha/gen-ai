@@ -1,4 +1,4 @@
-from transformers import Blip2Processor, Blip2ForConditionalGeneration
+from transformers import Blip2Processor, Blip2ForConditionalGeneration, BlipProcessor, BlipForConditionalGeneration
 from PIL import Image
 import torch
 from moviepy.editor import VideoFileClip
@@ -12,24 +12,40 @@ from langchain.chat_models import AzureChatOpenAI
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
-# Load the processor and model
-processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
-model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b")
+def load_model_and_processor(model_choice):
+    """
+    Load the chosen model and processor.
+    Input: model_choice (str)
+    Output: processor, model
+    """
+    # Load the chosen model and processor
+    if model_choice == "blip2":
+        processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
+        model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b")
+    elif model_choice == "blip":
+        processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+        model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+    else:
+        raise ValueError("Invalid model choice. Please choose 'blip' or 'blip2'.")
+    
+    model.to(device)
+    return processor, model
 
-# Move model to GPU
-model.to(device)
-
-def extract_frames(video_path, num_frames=50):
+def extract_frames(video_path, num_frames=10):
     """
     Extract frames from video.
     Input: video_path (str), num_frames (int)
     Output: frames (list of PIL.Image)
     """
+    # Load the video clip
     video_clip = VideoFileClip(video_path)
+    # Calculate total number of frames
     total_frames = int(video_clip.fps * video_clip.duration)
+    # Randomly sample frame times
     frame_times = sorted(random.sample(range(total_frames), num_frames))
     frames = []
 
+    # Extract frames at random times
     for t in frame_times:
         frame = video_clip.get_frame(t / video_clip.fps)
         image = Image.fromarray(np.uint8(frame)).convert("RGB")
@@ -37,10 +53,10 @@ def extract_frames(video_path, num_frames=50):
 
     return frames
 
-def generate_caption(image):
+def generate_caption(image, processor, model):
     """
     Generate caption for an image.
-    Input: image (PIL.Image)
+    Input: image (PIL.Image), processor, model
     Output: caption (str)
     """
     # Process the image
@@ -51,25 +67,9 @@ def generate_caption(image):
     caption = processor.decode(out[0], skip_special_tokens=True)
     return caption
 
-# Extract frames from a video and generate captions for each frame
-video_path = "path_to_save_video/How To Eat Like A Pro Cyclist.mp4"
-frames = extract_frames(video_path)
-captions = [generate_caption(frame) for frame in frames]
-
-# Print the generated captions
-for i, caption in enumerate(captions):
-    print(f"Caption {i + 1}: {caption}")
-
-# Azure OpenAI configuration
-api_version = "2023-12-01-preview"
-endpoint = "https://gpt-course.openai.azure.com"
-api_key = "72e0e504082a45f594cc2308b8d01ca9"
-deployment_name = "gpt-4"
-
-# Function to summarize image captions using LangChain and GPT-4
 def summarize_image_captions(captions, max_sentences=5):
     """
-    Summarize image captions using LangChain and GPT-4.
+    Generate a summary of image captions using LangChain and GPT-4.
     Input: captions (list of str), max_sentences (int)
     Output: summary (str)
     """
@@ -79,10 +79,10 @@ def summarize_image_captions(captions, max_sentences=5):
     AI"""
     prompt = PromptTemplate.from_template(template)
     agent = AzureChatOpenAI(
-        api_version=api_version,
-        azure_endpoint=endpoint,
-        api_key=api_key,
-        deployment_name=deployment_name
+        api_version="2023-12-01-preview",
+        azure_endpoint="https://gpt-course.openai.azure.com",
+        api_key="72e0e504082a45f594cc2308b8d01ca9",
+        deployment_name="gpt-4"
     )
     chain = LLMChain(
         llm=agent,
@@ -91,12 +91,3 @@ def summarize_image_captions(captions, max_sentences=5):
     summary = chain.run(reference="", text=text, max_sentences=max_sentences)
     return summary.strip()
 
-# Summarize the captions
-summary_captions = summarize_image_captions(captions, max_sentences=5)
-print("Image Captions Summary:\n", summary_captions)
-
-
-
-"""
-py -c "import sys; from subprocess import run; packages = ['transformers', 'torch', 'Pillow', 'moviepy', 'numpy', 'langchain']; run([sys.executable, '-m', 'pip', 'install'] + packages)"
-"""

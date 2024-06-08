@@ -7,7 +7,7 @@ from pydub import AudioSegment
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import AzureChatOpenAI
-from langchain.chains import ConversationChain
+from captions import extract_frames, generate_caption, summarize_image_captions
 
 # Set environment variable for ffmpeg 
 os.environ["IMAGEIO_FFMPEG_EXE"] = "/path/to/ffmpeg"
@@ -21,50 +21,41 @@ endpoint = "https://gpt-course.openai.azure.com"
 api_key = "72e0e504082a45f594cc2308b8d01ca9"
 deployment_name = "gpt-4"
 
-# Ensure directory exists
 def ensure_dir(file_path):
     """
-    Ensure directory exists.
-    Input: file_path (str)
-    Output: Creates directory if it does not exist
+    Ensure that the directory for the given file path exists.
     """
     if not os.path.exists(file_path):
         os.makedirs(file_path)
 
-# Function to download YouTube video and extract audio
 def download_and_extract_audio(video_url, video_output_path, audio_output_path):
     """
-    Download YouTube video and extract audio.
+    Download a YouTube video and extract the audio.
     Input: video_url (str), video_output_path (str), audio_output_path (str)
-    Output: audio_output_path (str)
+    Output: audio_output_path (str), video_path (str)
     """
     try:
-        # Ensure directories exist
         ensure_dir(video_output_path)
         ensure_dir(os.path.dirname(audio_output_path))
         
-        # Download the video
         yt = YouTube(video_url)
         video_path = yt.streams.get_highest_resolution().download(output_path=video_output_path)
 
-        # Extract audio from video
         video_clip = VideoFileClip(video_path)
         video_clip.audio.write_audiofile(audio_output_path)
         
-        return audio_output_path
-    
-    # Handle exceptions
+        return audio_output_path, video_path
     except Exception as e:
         print(f"Error downloading or processing video: {e}")
-        return None
+        return None, None
 
-# Function to recognize speech from audio file with retries
 def recognize_speech_with_retries(recognizer, audio_data, retries=3, delay=5):
     """
-    Recognize speech from audio file with retries.
-    Input: recognizer (SpeechRecognizer), audio_data (AudioData), retries (int), delay (int)
+    Recognize speech from audio data with retries.
+    Input: recognizer (SpeechRecognizer), audio_data, retries (int), delay (int)
     Output: text (str)
     """
+    # Retry speech recognition if it fails
     for attempt in range(retries):
         try:
             return recognizer.recognize_google(audio_data)
@@ -76,32 +67,32 @@ def recognize_speech_with_retries(recognizer, audio_data, retries=3, delay=5):
             return None
     return None
 
-# Function to split audio into chunks
 def split_audio(audio_path, chunk_length_ms=60000):
     """
-    Split audio into chunks.
+    Split an audio file into chunks of a specified length.
     Input: audio_path (str), chunk_length_ms (int)
-    Output: chunks (list)
+    Output: chunks (list of AudioSegment)
     """
     audio = AudioSegment.from_wav(audio_path)
     chunks = [audio[i:i + chunk_length_ms] for i in range(0, len(audio), chunk_length_ms)]
     return chunks
 
-# Function to process each audio chunk
 def process_audio_chunks(chunks):
     """
-    Process each audio chunk.
-    Input: chunks (list)
+    Process audio chunks for speech recognition.
+    Input: chunks (list of AudioSegment)
     Output: full_text (str)
     """
-    # Initialize SpeechRecognizer
+    # Initialize the recognizer
     recognizer = sr.Recognizer()
     full_text = ""
-    
+
+    # Process each chunk for speech recognition
     for i, chunk in enumerate(chunks):
         chunk_path = f"chunk_{i}.wav"
         chunk.export(chunk_path, format="wav")
         
+        # Recognize speech from the chunk
         with sr.AudioFile(chunk_path) as source:
             audio_data = recognizer.record(source)
             chunk_text = recognize_speech_with_retries(recognizer, audio_data)
@@ -110,10 +101,9 @@ def process_audio_chunks(chunks):
     
     return full_text
 
-# Function to summarize text using AzureChatOpenAI
 def summarize_text(text, max_sentences=3):
     """
-    Summarize text using AzureChatOpenAI.
+    Summarize text using LangChain and GPT-4.
     Input: text (str), max_sentences (int)
     Output: summary (str)
     """
@@ -133,36 +123,3 @@ def summarize_text(text, max_sentences=3):
     )
     summary = chain.run(reference="", text=text, max_sentences=max_sentences)
     return summary.strip()
-
-# YouTube video URL
-video_url = "https://www.youtube.com/watch?v=NIJ3vJKKDGk"
-
-# Paths to save video and audio
-video_output_path = "path_to_save_video"
-audio_output_path = "path_to_save_audio/audio.wav"
-
-# Download video and extract audio
-audio_path = download_and_extract_audio(video_url, video_output_path, audio_output_path)
-
-if audio_path:
-    print("HEYYYYYY HOOOOOOMIEEEE1")
-    
-    # Split audio into chunks
-    audio_chunks = split_audio(audio_path)
-    
-    print("HEYYYYYY HOOOOOOMIEEEE2")
-    
-    # Process each audio chunk
-    text = process_audio_chunks(audio_chunks)
-
-    if text:
-        print("HEYYYYYY HOOOOOOMIEEEE3")
-        print("Extracted Text:\n", text)
-
-        # Summarize text using Langchain and AzureChatOpenAI
-        summary_text = summarize_text(text, max_sentences=3)
-        print("Summary:\n", summary_text)
-    else:
-        print("Speech recognition failed.")
-else:
-    print("Invalid URL. Please enter a valid YouTube URL.")
