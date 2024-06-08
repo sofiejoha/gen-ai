@@ -8,18 +8,13 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import AzureChatOpenAI
 from captions import extract_frames, generate_caption, summarize_image_captions
+from config import *
 
 # Set environment variable for ffmpeg 
 os.environ["IMAGEIO_FFMPEG_EXE"] = "/path/to/ffmpeg"
 
 # Set your OpenAI API key
 openai_api_key = "sk-proj-8LWKh54dXcVosz8hbSlgT3BlbkFJf4zWnIBw0fhBK01E21XJ"
-
-# Azure OpenAI configuration
-api_version = "2023-12-01-preview"
-endpoint = "https://gpt-course.openai.azure.com"
-api_key = "72e0e504082a45f594cc2308b8d01ca9"
-deployment_name = "gpt-4"
 
 def ensure_dir(file_path):
     """
@@ -49,7 +44,7 @@ def download_and_extract_audio(video_url, video_output_path, audio_output_path):
         print(f"Error downloading or processing video: {e}")
         return None, None
 
-def recognize_speech_with_retries(recognizer, audio_data, retries=3, delay=5):
+def recognize_speech_with_retries(recognizer, audio_data, retries = 3, delay = 5):
     """
     Recognize speech from audio data with retries.
     Input: recognizer (SpeechRecognizer), audio_data, retries (int), delay (int)
@@ -67,7 +62,7 @@ def recognize_speech_with_retries(recognizer, audio_data, retries=3, delay=5):
             return None
     return None
 
-def split_audio(audio_path, chunk_length_ms=60000):
+def split_audio(audio_path, chunk_length_ms = 60000):
     """
     Split an audio file into chunks of a specified length.
     Input: audio_path (str), chunk_length_ms (int)
@@ -101,7 +96,7 @@ def process_audio_chunks(chunks):
     
     return full_text
 
-def summarize_text(text, max_sentences=3):
+def summarize_text(text, max_sentences = 3):
     """
     Summarize text using LangChain and GPT-4.
     Input: text (str), max_sentences (int)
@@ -112,14 +107,14 @@ def summarize_text(text, max_sentences=3):
     AI"""
     prompt = PromptTemplate.from_template(template)
     agent = AzureChatOpenAI(
-        api_version=api_version,
-        azure_endpoint=endpoint,
-        api_key=api_key,
-        deployment_name=deployment_name
+        api_version = API_VERSION,
+        azure_endpoint = ENDPOINT,
+        api_key = API_KEY,
+        deployment_name = DEPLOYMENT_NAME
     )
     chain = LLMChain(
-        llm=agent,
-        prompt=prompt
+        llm = agent,
+        prompt = prompt
     )
-    summary = chain.run(reference="", text=text, max_sentences=max_sentences)
+    summary = chain.run(reference = "", text = text, max_sentences = max_sentences)
     return summary.strip()

@@ -7,6 +7,7 @@ import numpy as np
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import AzureChatOpenAI
+from config import *
 
 # Check if GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -31,7 +32,7 @@ def load_model_and_processor(model_choice):
     model.to(device)
     return processor, model
 
-def extract_frames(video_path, num_frames=10):
+def extract_frames(video_path, num_frames = 10):
     """
     Extract frames from video.
     Input: video_path (str), num_frames (int)
@@ -60,14 +61,14 @@ def generate_caption(image, processor, model):
     Output: caption (str)
     """
     # Process the image
-    inputs = processor(images=image, return_tensors="pt").to(device)
+    inputs = processor(images = image, return_tensors = "pt").to(device)
     # Generate caption using the model
     out = model.generate(**inputs)
     # Decode the caption
-    caption = processor.decode(out[0], skip_special_tokens=True)
+    caption = processor.decode(out[0], skip_special_tokens = True)
     return caption
 
-def summarize_image_captions(captions, max_sentences=5):
+def summarize_image_captions(captions, max_sentences = 5):
     """
     Generate a summary of image captions using LangChain and GPT-4.
     Input: captions (list of str), max_sentences (int)
@@ -79,15 +80,15 @@ def summarize_image_captions(captions, max_sentences=5):
     AI"""
     prompt = PromptTemplate.from_template(template)
     agent = AzureChatOpenAI(
-        api_version="2023-12-01-preview",
-        azure_endpoint="https://gpt-course.openai.azure.com",
-        api_key="72e0e504082a45f594cc2308b8d01ca9",
-        deployment_name="gpt-4"
+        api_version = API_VERSION,
+        azure_endpoint = ENDPOINT,
+        api_key = API_KEY,
+        deployment_name = DEPLOYMENT_NAME
     )
     chain = LLMChain(
-        llm=agent,
-        prompt=prompt
+        llm = agent,
+        prompt = prompt
     )
-    summary = chain.run(reference="", text=text, max_sentences=max_sentences)
+    summary = chain.run(reference = "", text = text, max_sentences = max_sentences)
     return summary.strip()
 
