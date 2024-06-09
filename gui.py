@@ -54,6 +54,7 @@ def summarize_video():
 def clear_gui():
     """
     Clears all user inputs and resets the summary text box so that the user can input a new video.
+    This button also works to clear the fields. 
     """
     entry.delete(0, tk.END)
     entry_sen.delete(0, tk.END)
@@ -119,7 +120,7 @@ personality_var = tk.StringVar()
 personality_label = tk.Label(frame, text="Personality:", font=("Helvetica", 14), bg="#2b2b2b", fg="white")
 personality_label.grid(row=3, column=0, padx=6, pady=5)
 personality_box = ttk.Combobox(frame, textvariable=personality_var, font=("Arial", 14), state="readonly")
-personality_box['values'] = ("Professor", "Mafiaboss", "Kindergarden")
+personality_box['values'] = ("Professor", "Mafioso", "Kindergarten")
 personality_box.current(0)
 personality_box.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
 
