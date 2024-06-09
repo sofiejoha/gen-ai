@@ -22,13 +22,13 @@ def summarize_video():
     selected_model = model_var.get()
     personality = personality_var.get()
     
-    app.update_idletasks()
+    app.update()  # Force immediate update
     
     # Function for updating the progress bar and message 
     def progress_callback(step, message):
         progress_bar['value'] = step
         processing_label.config(text=message)
-        app.update_idletasks()
+        app.update()  # Force immediate update
     
     # Calling the main function to get the summary text 
     try:
@@ -48,6 +48,8 @@ def summarize_video():
         # Ensure that the progress bar is set to 100% when done 
         progress_bar['value'] = 100
         processing_label.config(text="Summary completed!")
+        app.update()  # Force immediate update
+
     
 def clear_gui():
     """
@@ -133,7 +135,7 @@ frame.columnconfigure(1, weight=1)
 
 # Processing message label
 processing_label = tk.Label(frame, text="", font=("Arial", 14), bg="#2b2b2b", fg="white")
-processing_label.grid(row=4, column=0, columnspan=3, pady=10, sticky="ew")
+processing_label.grid(row=4, column=0, columnspan=3, padx=(50,0), pady=10, sticky="ew")
 
 # Progress bar
 progress_bar = ttk.Progressbar(frame, mode='determinate', maximum=100)
