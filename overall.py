@@ -11,7 +11,7 @@ def summarize_overall(text_summary, image_summary, personality, max_sentences = 
     """
     combined_summary = f"Text Summary: {text_summary}\nImage Summary: {image_summary}"
     
-    if personality == 'kindergarden':
+    if personality == 'Kindergarden':
         template = """System: Provide a helpful overall summary in {max_sentences} sentences. Do this without letting us know that this is a 
         combined summary between the text summary and image summary. We want the summary to look complete and not two separated summaries. 
         Also, do not specifically describe what was seen in the video, but instead incorporate this information seamlessly into the text summary. 
@@ -21,7 +21,7 @@ def summarize_overall(text_summary, image_summary, personality, max_sentences = 
         Human: {combined_summary}
         AI"""
     
-    elif personality == 'mafiaboss':
+    elif personality == 'Mafiaboss':
         template = """System: Provide a helpful overall summary in {max_sentences} sentences. Do this without letting us know that this is a 
         combined summary between the text summary and image summary. We want the summary to look complete and not two separated summaries. 
         Also, do not specifically describe what was seen in the video, but instead incorporate this information seamlessly into the text summary. 
@@ -32,7 +32,7 @@ def summarize_overall(text_summary, image_summary, personality, max_sentences = 
         Human: {combined_summary}
         AI"""
 
-    elif personality == 'professor':
+    elif personality == 'Professor':
         template = """System: Provide a helpful overall summary in {max_sentences} sentences. Do this without letting us know that this is a 
         combined summary between the text summary and image summary. We want the summary to look complete and not two separated summaries. 
         Also, do not specifically describe what was seen in the video, but instead incorporate this information seamlessly into the text summary. 

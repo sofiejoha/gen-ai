@@ -20,14 +20,14 @@ def load_model_and_processor(model_choice):
     Output: processor, model
     """
     # Load the chosen model and processor
-    if model_choice == "blip2":
+    if model_choice == "BLIP-2":
         processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
         model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b")
-    elif model_choice == "blip":
+    elif model_choice == "BLIP":
         processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
         model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
     else:
-        raise ValueError("Invalid model choice. Please choose 'blip' or 'blip2'.")
+        raise ValueError("Invalid model choice. Please choose 'BLIP' or 'BLIP-2'.")
     
     model.to(device)
     return processor, model

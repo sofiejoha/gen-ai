@@ -2,7 +2,7 @@ from S_to_T import *
 from captions import *
 from overall import *
 
-def main(video_url, model_choice, progress_callback=None):
+def main(video_url, model_choice, personality, progress_callback=None):
    
     # Function for updating the progress bar 
     def update_progress(step, message):
@@ -48,7 +48,7 @@ def main(video_url, model_choice, progress_callback=None):
         update_progress(90, "Summarizing...")
 
         # Generate overall summary
-        overall_summary = summarize_overall(summary_text, summary_captions, personality = 'professor', max_sentences = 5)
+        overall_summary = summarize_overall(summary_text, summary_captions, personality, max_sentences = 5)
         print("Overall Summary:\n", overall_summary)
         return overall_summary
 
