@@ -8,6 +8,8 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import AzureChatOpenAI
 from config import *
+from scenedetect import SceneManager, open_video
+from scenedetect.detectors import ContentDetector
 
 # Check if GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -32,25 +34,41 @@ def load_model_and_processor(model_choice):
     model.to(device)
     return processor, model
 
-def extract_frames(video_path, num_frames = 10):
+
+def extract_frames(video_path, num_frames=10):
     """
-    Extract frames from video.
+    Extract frames from a video using scene detection. 
     Input: video_path (str), num_frames (int)
     Output: frames (list of PIL.Image)
     """
-    # Load the video clip
+    # Open the video and create a scene manager
+    video = open_video(video_path)
+    scene_manager = SceneManager()
+    scene_manager.add_detector(ContentDetector())
+
+    # Perform scene detection
+    scene_manager.detect_scenes(video)
+
+    # Get the list of scenes, each scene is a tuple (start_frame, end_frame)
+    scene_list = scene_manager.get_scene_list()
+
+    # Select frames from detected scenes
     video_clip = VideoFileClip(video_path)
-    # Calculate total number of frames
-    total_frames = int(video_clip.fps * video_clip.duration)
-    # Randomly sample frame times
-    frame_times = sorted(random.sample(range(total_frames), num_frames))
     frames = []
 
-    # Extract frames at random times
-    for t in frame_times:
-        frame = video_clip.get_frame(t / video_clip.fps)
+    for scene in scene_list:
+        # Get the middle frame of the scene
+        start_frame, end_frame = scene[0].get_frames(), scene[1].get_frames()
+        mid_frame_time = (start_frame + end_frame) // 2 / video_clip.fps
+        # Extract the frame
+        frame = video_clip.get_frame(mid_frame_time)
+        # Convert the frame to PIL Image
         image = Image.fromarray(np.uint8(frame)).convert("RGB")
+        # Append the image to the list of frames
         frames.append(image)
+        # Break if we have enough frames
+        if len(frames) >= num_frames:
+            break
 
     return frames
 
