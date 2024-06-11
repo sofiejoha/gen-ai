@@ -1,0 +1,17 @@
+pytube
+moviepy
+SpeechRecognition
+pydub
+packaging==23.2
+langchain
+langchain_community
+tk
+openai
+numpy
+torch 
+random2
+transformers
+pillow
+moviepy
+ttkthemes
+scenedetect
