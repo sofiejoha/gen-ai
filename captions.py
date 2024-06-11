@@ -15,6 +15,7 @@ from scenedetect.detectors import ContentDetector
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
+
 def load_model_and_processor(model_choice):
     """
     Load the chosen model and processor.
@@ -72,6 +73,7 @@ def extract_frames(video_path, num_frames=10):
 
     return frames
 
+
 def generate_caption(image, processor, model):
     """
     Generate caption for an image.
@@ -85,6 +87,7 @@ def generate_caption(image, processor, model):
     # Decode the caption
     caption = processor.decode(out[0], skip_special_tokens = True)
     return caption
+
 
 def summarize_image_captions(captions, max_sentences = 5):
     """

@@ -4,7 +4,7 @@ from ttkthemes import ThemedTk
 from S_to_T import *
 from captions import *
 from overall import *
-from main import *
+from pipeline import *
 
 def summarize_video():
     """

@@ -16,12 +16,14 @@ os.environ["IMAGEIO_FFMPEG_EXE"] = "/path/to/ffmpeg"
 # Set your OpenAI API key
 openai_api_key = "sk-proj-8LWKh54dXcVosz8hbSlgT3BlbkFJf4zWnIBw0fhBK01E21XJ"
 
+
 def ensure_dir(file_path):
     """
     Ensure that the directory for the given file path exists.
     """
     if not os.path.exists(file_path):
         os.makedirs(file_path)
+
 
 def download_and_extract_audio(video_url, video_output_path, audio_output_path):
     """
@@ -44,6 +46,18 @@ def download_and_extract_audio(video_url, video_output_path, audio_output_path):
         print(f"Error downloading or processing video: {e}")
         return None, None
 
+
+def split_audio(audio_path, chunk_length_ms = 60000):
+    """
+    Split an audio file into chunks of a specified length.
+    Input: audio_path (str), chunk_length_ms (int)
+    Output: chunks (list of AudioSegment)
+    """
+    audio = AudioSegment.from_wav(audio_path)
+    chunks = [audio[i:i + chunk_length_ms] for i in range(0, len(audio), chunk_length_ms)]
+    return chunks
+  
+
 def recognize_speech_with_retries(recognizer, audio_data, retries = 3, delay = 5):
     """
     Recognize speech from audio data with retries.
@@ -62,15 +76,6 @@ def recognize_speech_with_retries(recognizer, audio_data, retries = 3, delay = 5
             return None
     return None
 
-def split_audio(audio_path, chunk_length_ms = 60000):
-    """
-    Split an audio file into chunks of a specified length.
-    Input: audio_path (str), chunk_length_ms (int)
-    Output: chunks (list of AudioSegment)
-    """
-    audio = AudioSegment.from_wav(audio_path)
-    chunks = [audio[i:i + chunk_length_ms] for i in range(0, len(audio), chunk_length_ms)]
-    return chunks
 
 def process_audio_chunks(chunks):
     """
@@ -95,6 +100,7 @@ def process_audio_chunks(chunks):
                 full_text += chunk_text + " "
     
     return full_text
+
 
 def summarize_text(text, max_sentences = 3):
     """
