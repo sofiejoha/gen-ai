@@ -18,7 +18,6 @@ def summarize_video():
     
     # Get inputs from the user 
     youtube_link = entry.get()
-    sentences_num = entry_sen.get()
     selected_model = model_var.get()
     personality = personality_var.get()
     
@@ -57,7 +56,6 @@ def clear_gui():
     This button also works to clear the fields. 
     """
     entry.delete(0, tk.END)
-    entry_sen.delete(0, tk.END)
     model_box.current(0)
     personality_box.current(0)
     summary_textbox.config(state=tk.NORMAL)
@@ -65,12 +63,6 @@ def clear_gui():
     summary_textbox.config(state=tk.DISABLED)
     progress_bar['value'] = 0
     processing_label.config(text="")
-
-def validate_int(input):
-    if input.isdigit() or input == "":
-        return True
-    else:
-        return False
     
 # Initialize the main application window 
 app = ThemedTk(theme="arc")  # Use a modern theme
@@ -98,40 +90,32 @@ entry = tk.Entry(frame, font=("Arial", 14))
 entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 entry.configure(bg="white", fg="black")
 
-# Number of sentences entry: 
-sentences_label = tk.Label(frame, text="Number of sentences:", font=("Helvetica", 14), bg="#2b2b2b", fg="white")
-sentences_label.grid(row=1, column=0, padx=6, pady=5)
-validate_command = app.register(validate_int)
-entry_sen = tk.Entry(frame, font=("Arial", 14), validate="key", validatecommand=(validate_command, '%P'))
-entry_sen.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
-entry_sen.configure(bg="white", fg="black")
-
 # Choose model: 
 model_var = tk.StringVar()
 model_label = tk.Label(frame, text="Model:", font=("Helvetica", 14), bg="#2b2b2b", fg="white")
-model_label.grid(row=2, column=0, padx=6, pady=5)
+model_label.grid(row=1, column=0, padx=6, pady=5)
 model_box = ttk.Combobox(frame, textvariable=model_var, font=("Arial", 14), state="readonly")
 model_box['values'] = ("BLIP", "BLIP-2")
 model_box.current(0)
-model_box.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
+model_box.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
 # Choose personality: 
 personality_var = tk.StringVar()
 personality_label = tk.Label(frame, text="Personality:", font=("Helvetica", 14), bg="#2b2b2b", fg="white")
-personality_label.grid(row=3, column=0, padx=6, pady=5)
+personality_label.grid(row=2, column=0, padx=6, pady=5)
 personality_box = ttk.Combobox(frame, textvariable=personality_var, font=("Arial", 14), state="readonly")
 personality_box['values'] = ("Professor", "Mafioso", "Kindergarten")
 personality_box.current(0)
-personality_box.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
+personality_box.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
 
 # Summarize button:
 button = ttk.Button(frame, text='Summarize', command=summarize_video)
-button.grid(row=3, column=2, padx=5, pady=5)
+button.grid(row=2, column=2, padx=5, pady=5)
 frame.columnconfigure(1, weight=1)
 
 # Clear button:
 clear_button = ttk.Button(frame, text='Clear', command=clear_gui)
-clear_button.grid(row=3, column=3, padx=5, pady=5)
+clear_button.grid(row=2, column=3, padx=5, pady=5)
 frame.columnconfigure(1, weight=1)
 
 # Processing message label
@@ -151,7 +135,7 @@ scrollbar = tk.Scrollbar(summary_frame)
 scrollbar.grid(row=0, column=1, sticky ='ns')
 
 # Creating a text widget to display the summary text
-summary_textbox = tk.Text(summary_frame, wrap='word', font=("Arial", 14), yscrollcommand=scrollbar.set, bg="white", bd=5)
+summary_textbox = tk.Text(summary_frame, wrap='word', font=("Arial", 14), yscrollcommand=scrollbar.set, bg="white", fg="black", bd=5)
 summary_textbox.grid(row=0, column=0, padx=3, pady=5, sticky="nsew")
 scrollbar.config(command=summary_textbox.yview)
 summary_textbox.config(state=tk.DISABLED)
